@@ -23,6 +23,10 @@ jobs:
         shell: pwsh
         run: ./build.ps1 -ResolveDependency -Tasks noop
 
+      - name: Build module
+        shell: pwsh
+        run: ./build.ps1 -Tasks build
+
       - name: Publish
         shell: pwsh
         run: ./build.ps1 -Tasks publish

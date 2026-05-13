@@ -1,0 +1,126 @@
+<#
+    .SYNOPSIS
+        Wrapper for Restore-WebConfiguration to be able to retry on errors.
+
+    .PARAMETER Name
+        The name of the backup to restore.
+
+    .NOTES
+        - This wrapper is a workaround for the error:
+
+        IOException: The process cannot access the file
+        'C:\windows\system32\inetsrv\mbschema.xml' because
+        it is being used by another process.
+
+        - Addresses Issue #385: xWebConfigPropertyCollection: Timing issue in integration tests
+
+        IOException: The process cannot access the file
+        'C:\windows\system32\inetsrv\config\applicationHost.config'
+        because it is being used by another process.
+#>
+function Restore-WebConfigurationWrapper
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [System.String]
+        $Name
+    )
+
+    $retryCount = 1
+    $backupRestored = $false
+
+    do
+    {
+        try
+        {
+            Write-Verbose -Message ('Restoring web configuration - attempt {0}' -f $retryCount)
+
+            Restore-WebConfiguration -Name $Name
+
+            Write-Verbose -Message ('Successfully restored web configuration' -f $retryCount)
+
+            $backupRestored = $true
+        }
+        catch [System.IO.IOException], [System.ComponentModel.Win32Exception]
+        {
+            # On the fifth try, throw an error.
+            if ($retryCount -eq 5)
+            {
+                throw $_
+            }
+
+            Write-Verbose -Message ('Failed to restore web configuration. Retrying in 5 seconds. For reference the error message was "{0}".' -f $_)
+
+            $retryCount += 1
+
+            Start-Sleep -Seconds 5
+        }
+        catch
+        {
+            throw $_
+        }
+    } while (-not $backupRestored)
+
+    # Wait a bit for the restore to free resources.
+    Start-Sleep -Seconds 10
+}
+
+function Reset-DscLcm
+{
+    [CmdletBinding()]
+    param ()
+
+    Write-Verbose -Message 'Resetting DSC LCM.'
+
+    Stop-DscConfiguration -Force -ErrorAction SilentlyContinue
+    Remove-DscConfigurationDocument -Stage Current -Force
+    Remove-DscConfigurationDocument -Stage Pending -Force
+    Remove-DscConfigurationDocument -Stage Previous -Force
+}
+
+<#
+    .SYNOPSIS
+        Cleanup after unit tests.
+
+    .PARAMETER TestEnvironment
+        The TestEnvironment returned by Initialize-TestEnvironment.
+
+    .NOTES
+        - Remove-Module MockWebAdministrationWindowsFeature
+        - Remove mocks based on MockWebAdministrationWindowsFeature
+        - Restore-TestEnvironment
+#>
+function Invoke-UnitTestCleanup
+{
+    [CmdletBinding()]
+    param
+    (
+        [Parameter(Mandatory = $true)]
+        [ValidateNotNullOrEmpty()]
+        [Hashtable]
+        $TestEnvironment
+    )
+
+    if (Get-Module -Name 'MockWebAdministrationWindowsFeature')
+    {
+        Write-Information 'Removing MockWebAdministrationWindowsFeature module...'
+        Remove-Module -Name 'MockWebAdministrationWindowsFeature'
+    }
+
+    $mocks = (Get-ChildItem Function:) | Where-Object { $_.Source -eq 'MockWebAdministrationWindowsFeature' }
+
+    if ($mocks)
+    {
+        Write-Information 'Removing MockWebAdministrationWindowsFeature functions...'
+        $mocks | Remove-Item
+    }
+
+    Restore-TestEnvironment -TestEnvironment $TestEnvironment
+}
+
+Export-ModuleMember -Function `
+    Restore-WebConfigurationWrapper, `
+    Reset-DscLcm, `
+    Invoke-UnitTestCleanup

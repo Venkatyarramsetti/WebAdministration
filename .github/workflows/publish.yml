@@ -1,0 +1,30 @@
+name: Publish to PowerShell Gallery
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+
+    - name: Install dependencies and build
+      shell: pwsh
+      run: |
+        ./build.ps1 -ResolveDscResource
+
+    - name: Run tests
+      shell: pwsh
+      run: |
+        ./build.ps1 -Tasks test
+
+    - name: Publish to PowerShell Gallery
+      shell: pwsh
+      run: |
+        ./build.ps1 -Tasks publish -GalleryApiKey '${{ secrets.POWERSHELL_GALLERY_API_KEY }}'
+      if: github.ref == 'refs/heads/main'

@@ -3,16 +3,16 @@
     moduleVersion = '0.0.1'
 
     # ID used to uniquely identify this module
-    GUID = 'b3239f27-d7d3-4ae6-a5d2-d9a1c97d6ae4'
+    GUID = '68808e73-b8f2-45db-b67e-283fdf0117b1'
 
     # Author of this module
-    Author = 'DSC Community'
+    Author = 'Venkatyarramsetti'
 
     # Company or vendor of this module
-    CompanyName = 'DSC Community'
+    CompanyName = 'Venkatyarramsetti'
 
     # Copyright statement for this module
-    Copyright = 'Copyright the DSC Community contributors. All rights reserved.'
+    Copyright = 'Copyright (c) Venkatyarramsetti. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description = 'Module with DSC Resources for Web Administration'
@@ -47,10 +47,10 @@
             Tags = @('DesiredStateConfiguration', 'DSC', 'DSCResourceKit', 'DSCResource')
 
             # A URL to the license for this module.
-            LicenseUri = 'https://github.com/dsccommunity/WebAdministrationDsc/blob/main/LICENSE'
+            LicenseUri = 'https://github.com/Venkatyarramsetti/WebAdministration/blob/main/LICENSE'
 
             # A URL to the main website for this project.
-            ProjectUri = 'https://github.com/dsccommunity/WebAdministrationDsc'
+            ProjectUri = 'https://github.com/Venkatyarramsetti/WebAdministration'
 
             # A URL to an icon representing this module.
             IconUri = 'https://dsccommunity.org/images/DSC_Logo_300p.png'

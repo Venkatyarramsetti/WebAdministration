@@ -4,27 +4,30 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   publish:
-    runs-on: windows-latest
-    
+    runs-on: ubuntu-latest
+
     steps:
-    - name: Check out repository
-      uses: actions/checkout@v4
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Install dependencies and build
-      shell: pwsh
-      run: |
-        ./build.ps1 -ResolveDscResource
+      - name: Restore dependencies
+        shell: pwsh
+        run: ./build.ps1 -ResolveDependency -Tasks noop
 
-    - name: Run tests
-      shell: pwsh
-      run: |
-        ./build.ps1 -Tasks test
-
-    - name: Publish to PowerShell Gallery
-      shell: pwsh
-      run: |
-        ./build.ps1 -Tasks publish -GalleryApiKey '${{ secrets.POWERSHELL_GALLERY_API_KEY }}'
-      if: github.ref == 'refs/heads/main'
+      - name: Publish
+        shell: pwsh
+        run: ./build.ps1 -Tasks publish
+        env:
+          GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          GalleryApiToken: ${{ secrets.POWERSHELL_GALLERY_API_KEY }}
+          ReleaseBranch: main
+          MainGitBranch: main

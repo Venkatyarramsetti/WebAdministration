@@ -35,3 +35,4 @@ jobs:
           GalleryApiToken: ${{ secrets.POWERSHELL_GALLERY_API_KEY }}
           ReleaseBranch: main
           MainGitBranch: main
+          WikiGitUrl: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git
